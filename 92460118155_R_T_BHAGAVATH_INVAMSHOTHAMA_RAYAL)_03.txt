@@ -1,0 +1,143 @@
+#include <iostream>
+#include <vector>
+#include <random>
+#include <chrono>
+#include <algorithm>
+
+using namespace std;
+using namespace std::chrono;
+
+class HeapBenchmark {
+private:
+    // Helper function for Max Heap adjustment
+    void siftDownMax(vector<int>& data, int heapSize, int parentIdx) {
+        int maxIdx = parentIdx;
+        int leftChild = 2 * parentIdx + 1;
+        int rightChild = 2 * parentIdx + 2;
+
+        if (leftChild < heapSize && data[leftChild] > data[maxIdx])
+            maxIdx = leftChild;
+
+        if (rightChild < heapSize && data[rightChild] > data[maxIdx])
+            maxIdx = rightChild;
+
+        if (maxIdx != parentIdx) {
+            swap(data[parentIdx], data[maxIdx]);
+            siftDownMax(data, heapSize, maxIdx);
+        }
+    }
+
+    // Helper function for Min Heap adjustment
+    void siftDownMin(vector<int>& data, int heapSize, int parentIdx) {
+        int minIdx = parentIdx;
+        int leftChild = 2 * parentIdx + 1;
+        int rightChild = 2 * parentIdx + 2;
+
+        if (leftChild < heapSize && data[leftChild] < data[minIdx])
+            minIdx = leftChild;
+
+        if (rightChild < heapSize && data[rightChild] < data[minIdx])
+            minIdx = rightChild;
+
+        if (minIdx != parentIdx) {
+            swap(data[parentIdx], data[minIdx]);
+            siftDownMin(data, heapSize, minIdx);
+        }
+    }
+
+public:
+    // Max Heap Sort Implementation
+    void executeMaxHeapSort(vector<int>& data) {
+        int size = data.size();
+
+        // Build Max Heap
+        for (int i = size / 2 - 1; i >= 0; i--) {
+            siftDownMax(data, size, i);
+        }
+
+        // Extract elements from heap one by one
+        for (int i = size - 1; i > 0; i--) {
+            swap(data[0], data[i]);
+            siftDownMax(data, i, 0);
+        }
+    }
+
+    // Min Heap Sort Implementation
+    void executeMinHeapSort(vector<int>& data) {
+        int size = data.size();
+
+        // Build Min Heap
+        for (int i = size / 2 - 1; i >= 0; i--) {
+            siftDownMin(data, size, i);
+        }
+
+        // Extract elements from heap one by one
+        for (int i = size - 1; i > 0; i--) {
+            swap(data[0], data[i]);
+            siftDownMin(data, i, 0);
+        }
+
+        // Reverse to achieve ascending sequence
+        reverse(data.begin(), data.end());
+    }
+};
+
+int main() {
+    int totalElements;
+
+    cout << "Enter the number of elements to generate: ";
+    cin >> totalElements;
+
+    // Using modern C++ random library instead of rand()
+    random_device rd;
+    mt19937 generator(rd());
+    uniform_int_distribution<int> distribution(1, 100000);
+
+    vector<int> sourceDataset(totalElements);
+    for (int i = 0; i < totalElements; ++i) {
+        sourceDataset[i] = distribution(generator);
+    }
+
+    // Duplicate dataset for fair comparison
+    vector<int> datasetForMax = sourceDataset;
+    vector<int> datasetForMin = sourceDataset;
+
+    HeapBenchmark sorter;
+
+    // --- Benchmark Max Heap Sort ---
+    auto startTimeMax = high_resolution_clock::now();
+    sorter.executeMaxHeapSort(datasetForMax);
+    auto endTimeMax = high_resolution_clock::now();
+
+    // --- Benchmark Min Heap Sort ---
+    auto startTimeMin = high_resolution_clock::now();
+    sorter.executeMinHeapSort(datasetForMin);
+    auto endTimeMin = high_resolution_clock::now();
+
+    // Calculate durations in multiple metrics
+    auto durationNanoMax = duration_cast<nanoseconds>(endTimeMax - startTimeMax);
+    auto durationMicroMax = duration_cast<microseconds>(endTimeMax - startTimeMax);
+    auto durationMilliMax = duration_cast<milliseconds>(endTimeMax - startTimeMax);
+
+    auto durationNanoMin = duration_cast<nanoseconds>(endTimeMin - startTimeMin);
+    auto durationMicroMin = duration_cast<microseconds>(endTimeMin - startTimeMin);
+    auto durationMilliMin = duration_cast<milliseconds>(endTimeMin - startTimeMin);
+
+    // Output Results
+    cout << "\n========================================\n";
+    cout << "           MAX HEAP SORT TIMING         \n";
+    cout << "========================================\n";
+    cout << "Time taken : " << durationNanoMax.count() << " nanoseconds\n";
+    cout << "Time taken : " << durationMicroMax.count() << " microseconds\n";
+    cout << "Time taken : " << durationMilliMax.count() << " milliseconds\n";
+
+    cout << "\n========================================\n";
+    cout << "           MIN HEAP SORT TIMING         \n";
+    cout << "========================================\n";
+    cout << "Time taken : " << durationNanoMin.count() << " nanoseconds\n";
+    cout << "Time taken : " << durationMicroMin.count() << " microseconds\n";
+    cout << "Time taken : " << durationMilliMin.count() << " milliseconds\n";
+    cout << "========================================\n";
+
+    return 0;
+}
