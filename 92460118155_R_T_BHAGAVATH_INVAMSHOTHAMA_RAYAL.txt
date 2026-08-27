@@ -1,59 +1,71 @@
-                                                                        Practical 04
-#include <chrono>
-
+#include <iostream>
 using namespace std;
-using namespace std::chrono;
 
-// Iterative Factorial Calculation
-unsigned long long getFactorialLoop(int num) {
-    unsigned long long fact = 1;
-    int i = 1;
-    while (i <= num) {
-        fact *= i;
-        i++;
-    }
-    return fact;
-}
+int main()
+{
+    int coins[] = {1, 2, 5};
+    int n = 3;
+    int amount = 11;
 
-// Recursive Factorial Calculation
-unsigned long long getFactorialRecursion(int num) {
-    if (num == 0 || num == 1) {
-        return 1;
-    }
-    return num * getFactorialRecursion(num - 1);
-}
+    int dp[3][12];
 
-int main() {
-    int n;
-    cout << "Enter a non-negative integer (e.g., 20): ";
-    
-    cin >> n;
-    if (cin.fail() || n < 0) {
-        cerr << "Invalid input! Please enter a non-negative integer." << endl;
-        return 1;
+    // Initialize first row
+    for (int j = 0; j <= amount; j++)
+    {
+        if (j % coins[0] == 0)
+            dp[0][j] = j / coins[0];
+        else
+            dp[0][j] = 9999;
     }
 
-    // Measure Iterative Time
-    auto startTime1 = high_resolution_clock::now();
-    unsigned long long iterativeAnswer = getFactorialLoop(n);
-    auto endTime1 = high_resolution_clock::now();
+    // Build DP table
+    for (int i = 1; i < n; i++)
+    {
+        for (int j = 0; j <= amount; j++)
+        {
+            int notTake = dp[i - 1][j];
 
-    duration<double, nano> iterativeTime = endTime1 - startTime1;
+            int take = 9999;
 
-    // Measure Recursive Time
-    auto startTime2 = high_resolution_clock::now();
-    unsigned long long recursiveAnswer = getFactorialRecursion(n);
-    auto endTime2 = high_resolution_clock::now();
+            if (coins[i] <= j)
+                take = 1 + dp[i][j - coins[i]];
 
-    duration<double, nano> recursiveTime = endTime2 - startTime2;
+            if (take < notTake)
+                dp[i][j] = take;
+            else
+                dp[i][j] = notTake;
+        }
+    }
 
-    // Display Output
-    cout << "\n--- Results for " << n << "! ---\n";
-    cout << "Iterative Result : " << iterativeAnswer << "\n";
-    cout << "Iterative Time   : " << iterativeTime.count() << " ns\n";
-    cout << "-------------------------------\n";
-    cout << "Recursive Result : " << recursiveAnswer << "\n";
-    cout << "Recursive Time   : " << recursiveTime.count() << " ns\n";
+    // Find selected coins
+    int selected[3] = {0};
+
+    int j = amount;
+
+    for (int i = n - 1; i >= 0; i--)
+    {
+        while (j >= coins[i] &&
+               dp[i][j] == 1 + dp[i][j - coins[i]])
+        {
+            selected[i]++;
+            j = j - coins[i];
+        }
+    }
+
+    cout << "Selected Coins = {";
+
+    for (int i = 0; i < n; i++)
+    {
+        cout << selected[i];
+
+        if (i < n - 1)
+            cout << ",";
+    }
+
+    cout << "}" << endl;
+
+    cout << "Minimum Number of Coins = "
+         << dp[n - 1][amount] << endl;
 
     return 0;
 }
