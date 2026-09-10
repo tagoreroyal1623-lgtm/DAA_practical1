@@ -31,7 +31,7 @@ int main()
             // j = ending matrix
             int j = i + length - 1;
 
-            // Assume a very large cost initially
+       
             dp[i][j] = 999999999;
 
             // Try every possible splitting point
