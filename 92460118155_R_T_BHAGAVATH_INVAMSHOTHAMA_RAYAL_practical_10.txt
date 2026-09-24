@@ -1,0 +1,107 @@
+#include <iostream>
+using namespace std;
+
+struct Edge
+{
+    int u;
+    int v;
+    int weight;
+};
+
+// Find the parent of a vertex
+int findParent(int parent[], int vertex)
+{
+    if (parent[vertex] == vertex)
+    {
+        return vertex;
+    }
+
+    return findParent(parent, parent[vertex]);
+}
+
+// Join two sets
+void unionSet(int parent[], int u, int v)
+{
+    int parentU = findParent(parent, u);
+    int parentV = findParent(parent, v);
+
+    parent[parentV] = parentU;
+}
+
+int main()
+{
+    int n, e;
+
+    cout << "Enter number of vertices: ";
+    cin >> n;
+
+    cout << "Enter number of edges: ";
+    cin >> e;
+
+    Edge edges[20];
+
+    cout << "Enter edges (u v weight):\n";
+
+    for (int i = 0; i < e; i++)
+    {
+        cin >> edges[i].u;
+        cin >> edges[i].v;
+        cin >> edges[i].weight;
+    }
+
+    // Sort edges using Bubble Sort
+    for (int i = 0; i < e - 1; i++)
+    {
+        for (int j = 0; j < e - i - 1; j++)
+        {
+            if (edges[j].weight > edges[j + 1].weight)
+            {
+                Edge temp = edges[j];
+
+                edges[j] = edges[j + 1];
+
+                edges[j + 1] = temp;
+            }
+        }
+    }
+
+    // Initially, every vertex is its own parent
+    int parent[10];
+
+    for (int i = 0; i < n; i++)
+    {
+        parent[i] = i;
+    }
+
+    int count = 0;
+    int totalCost = 0;
+
+    cout << "\nEdges in Minimum Spanning Tree:\n";
+
+    // Select edges until n-1 edges are chosen
+    for (int i = 0; i < e && count < n - 1; i++)
+    {
+        int u = edges[i].u;
+        int v = edges[i].v;
+
+        int parentU = findParent(parent, u);
+        int parentV = findParent(parent, v);
+
+        // If parents are different, no cycle is formed
+        if (parentU != parentV)
+        {
+            cout << u << " - " << v
+                 << " : " << edges[i].weight << endl;
+
+            totalCost = totalCost + edges[i].weight;
+
+            unionSet(parent, u, v);
+
+            count++;
+        }
+    }
+
+    cout << "\nMinimum Cost = " << totalCost << endl;
+
+    return 0;
+}}
